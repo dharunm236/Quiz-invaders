@@ -20,10 +20,7 @@ function StartScreen() {
       </button>
       <div className="controller"></div>
       
-      {/* Debug info */}
-      <div style={{ position: 'absolute', bottom: 10, left: 10, fontSize: '10px' }}>
-        State: {gameState}, Debug: {debug}
-      </div>
+      
     </div>
   );
 }
