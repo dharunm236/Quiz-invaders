@@ -1,7 +1,7 @@
 export const CONFIG = {
   LIVES: 3,
-  ALIEN_ROWS: 3,
-  ALIEN_COLS: 8,
+  ALIEN_ROWS: 1,    
+  ALIEN_COLS: 5,     
   MOVE_INTERVAL: 2000,
   LASER_SPEED: 4,
   SHIP_SPEED: 5
@@ -23,5 +23,5 @@ export const QUESTIONS = [
     answers: ["Thalapathy Vijay","New","Ajith aamai"],
     correct: 0
   }
-  // Add more questions
+
 ];

@@ -1,6 +1,9 @@
+
+import backgroundMusic from '../assets/sounds/background-music.mp3';
+
 export const SOUNDS = {
     // Background music - using a reliable ogg format file
-    BACKGROUND_MUSIC: "https://samplelib.com/lib/preview/mp3/sample-9s.mp3",
+    BACKGROUND_MUSIC: backgroundMusic,
     
     // Game actions
     LASER_SHOOT: "https://www.soundjay.com/mechanical/sounds/laser-gun-19.mp3",

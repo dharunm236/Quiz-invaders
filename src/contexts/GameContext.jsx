@@ -23,16 +23,23 @@ export function GameProvider({ children }) {
   // Initialize aliens grid
   function initializeAliens() {
     const newAliens = [];
-    for (let i = 0; i < CONFIG.ALIEN_ROWS; i++) {
-      for (let j = 0; j < CONFIG.ALIEN_COLS; j++) {
-        newAliens.push({
-          id: i * CONFIG.ALIEN_COLS + j,
-          alive: true,
-          x: j * 12 + 2,
-          y: i * 10 + 10
-        });
-      }
+    
+    // Change from grid to single row of 5 aliens
+    const ALIEN_COUNT = 5;
+    
+    for (let i = 0; i < ALIEN_COUNT; i++) {
+      // Position aliens evenly across the top portion of the screen
+      // First alien at 15%, last at 85%, evenly spaced between
+      const xPos = 15 + (i * (70 / (ALIEN_COUNT - 1)));
+      
+      newAliens.push({
+        id: i,
+        alive: true,
+        x: xPos, // Evenly distribute horizontally
+        y: 15    // Fixed height for single row
+      });
     }
+    
     return newAliens;
   }
 
@@ -50,7 +57,8 @@ export function GameProvider({ children }) {
       setShipPos(p => Math.max(0, p - CONFIG.SHIP_SPEED));
     } else if (e.key === 'ArrowRight') {
       setShipPos(p => Math.min(90, p + CONFIG.SHIP_SPEED));
-    } else if (e.key === ' ' || e.key === 'Enter') {
+    } else if (e.key === ' ') {
+      // Only spacebar will fire manually, Enter key is removed
       fireLaser();
     }
   }, [gameState, shipPos]); // shipPos is needed instead of fireLaser
@@ -100,8 +108,8 @@ export function GameProvider({ children }) {
     lasers.forEach(laser => {
       const hitAlien = aliens.find(a => 
         a.alive && 
-        Math.abs(a.x - laser.x) < 5 && 
-        Math.abs(a.y - laser.y) < 5
+        Math.abs(a.x - laser.x) < 10 && // Increased from 5 to 10 for larger gif
+        Math.abs(a.y - laser.y) < 10    // Increased from 5 to 10 for larger gif
       );
 
       if (hitAlien) {
