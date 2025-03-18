@@ -1,6 +1,8 @@
 import { createContext, useState, useEffect, useCallback, useContext } from 'react';
-import { CONFIG, QUESTIONS } from '../config/gameConfig';
+import { CONFIG } from '../config/gameConfig';
 import soundService from '../services/soundService';
+import { db } from '../firebaseConfig';
+import { collection, getDocs } from 'firebase/firestore';
 
 const GameContext = createContext();
 
@@ -14,10 +16,82 @@ export function GameProvider({ children }) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [alienDirection, setAlienDirection] = useState(1);
   const [debug, setDebug] = useState('');
+  const [questions, setQuestions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize sound system
+  // Fetch questions from Firestore
+  const fetchQuestions = async () => {
+    try {
+      setIsLoading(true);
+      setDebug('Fetching questions from Firestore...');
+      
+      const questionsRef = collection(db, 'invaderquiz');
+      const querySnapshot = await getDocs(questionsRef);
+      
+      if (querySnapshot.empty) {
+        console.error('No questions found in Firestore');
+        setDebug('No questions found in database. Using fallback questions.');
+        // Use fallback questions if none are found
+        return [
+          {
+            question: "What's 2 + 2?",
+            answers: ["3", "4", "5"],
+            correct: 1
+          },
+          {
+            question: "Capital of France?",
+            answers: ["London", "Berlin", "Paris"],
+            correct: 2
+          }
+        ];
+      }
+      
+      // Convert Firestore data to array of question objects
+      const allQuestions = [];
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        allQuestions.push({
+          id: doc.id,
+          question: data.question,
+          answers: data.answers,
+          correct: data.correct
+        });
+      });
+      
+      // Shuffle and get 5 random questions
+      const shuffled = allQuestions.sort(() => 0.5 - Math.random());
+      const selectedQuestions = shuffled.slice(0, 5);
+      
+      setDebug(`Loaded ${selectedQuestions.length} questions from Firestore`);
+      return selectedQuestions;
+      
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+      setDebug(`Error fetching questions: ${error.message}`);
+      // Return fallback questions on error
+      return [
+        {
+          question: "What's 2 + 2?",
+          answers: ["3", "4", "5"],
+          correct: 1
+        },
+        {
+          question: "Capital of France?",
+          answers: ["London", "Berlin", "Paris"],
+          correct: 2
+        }
+      ];
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initialize sound system and fetch questions
   useEffect(() => {
     soundService.initialize();
+    fetchQuestions().then(fetchedQuestions => {
+      setQuestions(fetchedQuestions);
+    });
   }, []);
 
   // Initialize aliens grid
@@ -43,7 +117,7 @@ export function GameProvider({ children }) {
     return newAliens;
   }
 
-  // Put this BEFORE handleKeyDown
+  // Fire laser function
   const fireLaser = () => {
     soundService.play('LASER_SHOOT');
     setLasers(prev => [...prev, { x: shipPos, y: 90 }]);
@@ -61,30 +135,7 @@ export function GameProvider({ children }) {
       // Only spacebar will fire manually, Enter key is removed
       fireLaser();
     }
-  }, [gameState, shipPos]); // shipPos is needed instead of fireLaser
-
-  // Move aliens
-  /* 
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-    
-    const interval = setInterval(() => {
-      setAliens(prev => {
-        const newAliens = prev.map(alien => ({
-          ...alien,
-          x: alien.x + (alienDirection * 2)
-        }));
-        
-        const edgeReached = newAliens.some(a => a.alive && (a.x > 95 || a.x < 5));
-        if (edgeReached) setAlienDirection(d => -d);
-        
-        return newAliens;
-      });
-    }, CONFIG.MOVE_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [alienDirection, gameState]); 
-  */
+  }, [gameState, shipPos]);
 
   // Handle laser movement
   useEffect(() => {
@@ -108,8 +159,8 @@ export function GameProvider({ children }) {
     lasers.forEach(laser => {
       const hitAlien = aliens.find(a => 
         a.alive && 
-        Math.abs(a.x - laser.x) < 10 && // Increased from 5 to 10 for larger gif
-        Math.abs(a.y - laser.y) < 10    // Increased from 5 to 10 for larger gif
+        Math.abs(a.x - laser.x) < 10 && 
+        Math.abs(a.y - laser.y) < 10    
       );
 
       if (hitAlien) {
@@ -145,9 +196,19 @@ export function GameProvider({ children }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  // Refresh questions for new game
+  const refreshQuestions = async () => {
+    const newQuestions = await fetchQuestions();
+    setQuestions(newQuestions);
+    return newQuestions;
+  };
+
   // Game functions
-  const startGame = () => {
+  const startGame = async () => {
     console.log("Starting game...");
+    
+    // Refresh questions for new game
+    const gameQuestions = await refreshQuestions();
     
     // Force state updates in a single callback to ensure they happen together
     setGameState('playing');
@@ -172,14 +233,19 @@ export function GameProvider({ children }) {
   };
 
   const handleAnswer = (answerIndex) => {
-    if (QUESTIONS[currentQuestion].correct === answerIndex) {
+    if (!questions || questions.length === 0) {
+      console.error('No questions available');
+      return;
+    }
+    
+    if (questions[currentQuestion].correct === answerIndex) {
       soundService.play('CORRECT_ANSWER');
       fireLaser();
     } else {
       soundService.play('WRONG_ANSWER');
       setLives(l => l - 1);
     }
-    setCurrentQuestion((prev) => (prev + 1) % QUESTIONS.length);
+    setCurrentQuestion((prev) => (prev + 1) % questions.length);
   };
 
   const value = {
@@ -192,8 +258,9 @@ export function GameProvider({ children }) {
     currentQuestion,
     startGame,
     handleAnswer,
-    QUESTIONS,
-    debug  // Add this
+    questions,
+    isLoading,
+    debug
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

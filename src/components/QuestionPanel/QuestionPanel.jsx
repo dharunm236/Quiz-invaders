@@ -2,8 +2,18 @@ import { useGame } from '../../contexts/GameContext';
 import './QuestionPanel.css';
 
 function QuestionPanel() {
-  const { QUESTIONS, currentQuestion, handleAnswer, lives, score } = useGame();
-  const question = QUESTIONS[currentQuestion];
+  const { questions, currentQuestion, handleAnswer, lives, score, isLoading } = useGame();
+  
+  // Show loading state if questions are still being fetched
+  if (isLoading || !questions || questions.length === 0) {
+    return (
+      <div className="question-panel">
+        <div className="question">Loading questions...</div>
+      </div>
+    );
+  }
+  
+  const question = questions[currentQuestion % questions.length];
 
   return (
     <div className="question-panel">
