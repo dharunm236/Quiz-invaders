@@ -1,0 +1,12 @@
+.game-container {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.game-area {
+  flex: 2;
+  position: relative;
+  border-right: 3px solid #0f0;
+  overflow: hidden;
+}

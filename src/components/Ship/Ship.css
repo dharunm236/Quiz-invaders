@@ -1,0 +1,9 @@
+.ship {
+  width: 40px;
+  height: 20px;
+  background: #00f;
+  position: absolute;
+  bottom: 20px;
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+  transition: left 0.1s linear;
+}

@@ -1,0 +1,249 @@
+/* CRT Effect */
+.tv-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #0a0a0a;
+}
+
+.tv-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none; /* Allow clicking through to the game */
+  background-image: url('/src/assets/TV-game.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.crt-screen {
+  position: relative;
+  width: 76%; /* Adjust based on the TV frame's inner dimensions */
+  height: 70%; /* Adjust based on the TV frame's inner dimensions */
+  background: #000;
+  overflow: hidden;
+  font-family: 'Press Start 2P', cursive;
+  color: #0f0;
+  text-shadow: 0 0 5px #0f0;
+  z-index: 5;
+  /* Add TV screen curvature effect */
+  border-radius: 20px;
+  /* Offset to position inside the TV frame */
+  margin-top: -2%;
+}
+
+.crt-screen::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(0, 255, 0, 0.05) 50%,
+    rgba(0, 0, 0, 0.1) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+.crt-screen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  animation: flicker 0.15s infinite;
+  pointer-events: none;
+}
+
+@keyframes flicker {
+  0% { opacity: 0.9; }
+  50% { opacity: 1; }
+  100% { opacity: 0.9; }
+}
+
+/* Start Screen */
+.start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20vh;
+}
+
+.title {
+  font-size: 3rem;
+  margin-bottom: 2rem;
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { text-shadow: 0 0 10px #0f0; }
+  50% { text-shadow: 0 0 20px #0f0; }
+}
+
+.start-button {
+  background: #000;
+  border: 3px solid #0f0;
+  color: #0f0;
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 2rem;
+}
+
+.start-button:hover {
+  background: #0f0;
+  color: #000;
+  box-shadow: 0 0 20px #0f0;
+}
+
+/* Game Area */
+.game-container {
+  display: flex;
+  height: 100vh;
+}
+
+.game-area {
+  flex: 2;
+  position: relative;
+  border-right: 3px solid #0f0;
+}
+
+.ship {
+  width: 40px;
+  height: 20px;
+  background: #00f;
+  position: absolute;
+  bottom: 20px;
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+  transition: left 0.1s linear;
+}
+
+.alien {
+  width: 30px;
+  height: 20px;
+  background: #f00;
+  position: absolute;
+  clip-path: polygon(100% 0, 80% 100%, 20% 100%, 0 0);
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.laser {
+  width: 3px;
+  height: 15px;
+  background: #ff0;
+  position: absolute;
+  animation: laser 0.5s linear;
+}
+
+@keyframes laser {
+  from { bottom: 20px; }
+  to { bottom: 100%; }
+}
+
+/* Question Panel */
+.question-panel {
+  flex: 1;
+  padding: 2rem;
+  border-left: 3px solid #0f0;
+}
+
+.question {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.answers {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.answer-button {
+  background: transparent;
+  border: 2px solid #0f0;
+  color: #0f0;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.answer-button:hover {
+  background: #0f03;
+  box-shadow: 0 0 10px #0f0;
+}
+
+.status {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+}
+
+.lives {
+  display: flex;
+  gap: 0.5rem;
+  color: #f00;
+}
+
+.heart {
+  font-size: 1.5rem;
+}
+
+.score {
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}
+
+/* End Screens */
+.end-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.flash {
+  animation: flash 1s ease-in-out infinite;
+}
+
+@keyframes flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Screen Shake */
+.game-active:has(.answer-button:hover) {
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0% { transform: translate(1px, 1px); }
+  10% { transform: translate(-1px, -2px); }
+  20% { transform: translate(-3px, 0px); }
+  30% { transform: translate(3px, 2px); }
+  40% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 2px); }
+  60% { transform: translate(-3px, 1px); }
+  70% { transform: translate(3px, 1px); }
+  80% { transform: translate(-1px, -1px); }
+  90% { transform: translate(1px, 2px); }
+  100% { transform: translate(1px, -2px); }
+}
