@@ -17,6 +17,11 @@ export const QUESTIONS = [
     question: "Capital of France?",
     answers: ["London", "Berlin", "Paris"],
     correct: 2
+  },
+  {
+    question: "Who is the best actor in the world who acts very well",
+    answers: ["Thalapathy Vijay","New","Ajith aamai"],
+    correct: 0
   }
   // Add more questions
 ];

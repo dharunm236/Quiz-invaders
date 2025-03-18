@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useCallback, useContext } from 'react';
 import { CONFIG, QUESTIONS } from '../config/gameConfig';
+import soundService from '../services/soundService';
 
 const GameContext = createContext();
 
@@ -13,6 +14,11 @@ export function GameProvider({ children }) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [alienDirection, setAlienDirection] = useState(1);
   const [debug, setDebug] = useState('');
+
+  // Initialize sound system
+  useEffect(() => {
+    soundService.initialize();
+  }, []);
 
   // Initialize aliens grid
   function initializeAliens() {
@@ -32,6 +38,7 @@ export function GameProvider({ children }) {
 
   // Put this BEFORE handleKeyDown
   const fireLaser = () => {
+    soundService.play('LASER_SHOOT');
     setLasers(prev => [...prev, { x: shipPos, y: 90 }]);
   };
 
@@ -49,6 +56,7 @@ export function GameProvider({ children }) {
   }, [gameState, shipPos]); // shipPos is needed instead of fireLaser
 
   // Move aliens
+  /* 
   useEffect(() => {
     if (gameState !== 'playing') return;
     
@@ -67,7 +75,8 @@ export function GameProvider({ children }) {
     }, CONFIG.MOVE_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [alienDirection, gameState]);
+  }, [alienDirection, gameState]); 
+  */
 
   // Handle laser movement
   useEffect(() => {
@@ -101,6 +110,7 @@ export function GameProvider({ children }) {
             a.id === hitAlien.id ? { ...a, alive: false } : a
           )
         );
+        soundService.play('EXPLOSION');
         setScore(s => s + 100);
         setLasers(prev => prev.filter(l => l !== laser));
       }
@@ -109,8 +119,16 @@ export function GameProvider({ children }) {
 
   // Handle game state changes
   useEffect(() => {
-    if (lives <= 0) setGameState('lost');
-    if (aliens.length > 0 && aliens.every(a => !a.alive)) setGameState('won');
+    if (lives <= 0) {
+      soundService.play('GAME_OVER');
+      soundService.stopBackgroundMusic();
+      setGameState('lost');
+    }
+    if (aliens.length > 0 && aliens.every(a => !a.alive)) {
+      soundService.play('LEVEL_COMPLETE');
+      soundService.stopBackgroundMusic();
+      setGameState('won');
+    }
   }, [lives, aliens]);
 
   // Event listeners
@@ -136,14 +154,21 @@ export function GameProvider({ children }) {
       setAlienDirection(1);
       setCurrentQuestion(0);
       setDebug('Game started at ' + new Date().toISOString());
+      
+      // Start background music
+      soundService.stopAll();
+      soundService.startBackgroundMusic();
+      
       console.log("State updates completed");
     }, 0);
   };
 
   const handleAnswer = (answerIndex) => {
     if (QUESTIONS[currentQuestion].correct === answerIndex) {
+      soundService.play('CORRECT_ANSWER');
       fireLaser();
     } else {
+      soundService.play('WRONG_ANSWER');
       setLives(l => l - 1);
     }
     setCurrentQuestion((prev) => (prev + 1) % QUESTIONS.length);

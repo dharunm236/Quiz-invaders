@@ -4,6 +4,7 @@ import StartScreen from './components/StartScreen/StartScreen';
 import GameScreen from './components/GameScreen/GameScreen';
 import WinScreen from './components/WinScreen/WinScreen';
 import GameOver from './components/GameOver/GameOver';
+import MuteButton from './components/MuteButton/MuteButton';
 import TVFrame from './assets/TV-game.png'; // Import the image
 import './App.css';
 
@@ -17,10 +18,10 @@ function GameContent() {
     return () => clearTimeout(timer);
   }, [gameState]);
   
-  console.log("GameContent rendering, gameState:", gameState);
 
   return (
     <div className={`crt-screen ${gameState === 'playing' ? 'game-active' : ''}`}>
+      <MuteButton />
       {gameState === 'start' && <StartScreen />}
       {gameState === 'playing' && <GameScreen />}
       {gameState === 'won' && <WinScreen />}
